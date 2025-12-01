@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Control de Camiones — BYC (Modo Oscuro)</title>
+<style>
+  :root{
+    --bg:#0f1115;--panel:#151923;--muted:#8a90a2;--text:#e8ecf1;--accent:#5ea1ff;--danger:#ff5e7a;--ok:#2bd27f;--border:#232838;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:20px}
+  h1{font-size:1.9rem;margin:0 0 6px}
+  .lead{color:var(--muted);margin:0 0 16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  .tab{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:#111524;color:var(--muted);cursor:pointer}
+  .tab.active{background:var(--accent);color:#07111f;border-color:transparent;font-weight:700}
+  label{font-size:.9rem;color:var(--muted)}
+  input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0c0f17;color:var(--text)}
+  textarea{min-height:84px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .row{margin-bottom:12px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  button{padding:12px 14px;border:0;border-radius:12px;cursor:pointer;font-weight:700}
+  .btn{background:#1b2233;color:var(--text);border:1px solid var(--border)}
+  .primary{background:var(--accent);color:#051226}
+  .danger{background:var(--danger);color:#22070c}
+  .ok{color:var(--ok);font-weight:700}
+  .error{color:var(--danger);white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{border:1px solid var(--border);padding:8px;font-size:.95rem}
+  th{background:#101525;color:var(--muted);text-align:left}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.8rem;border:1px solid var(--border);background:#101525;color:var(--muted)}
+  .muted{color:var(--muted)}
+  /* Overlay de seguridad */
+  .lock{position:fixed;inset:0;background:rgba(5,8,15,.9);display:flex;align-items:center;justify-content:center;z-index:99}
+  .lock .box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;width:min(92%,420px)}
+  .sep{height:1px;background:var(--border);margin:12px 0}
+  @media (max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Control de Camiones — BYC <span class="badge">Modo Oscuro</span></h1>
+  <p class="lead">App con seguridad, listas de Choferes/Fincas/Lotes y sincronización con Google Sheets.</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="viaje">Registrar viaje</button>
+    <button class="tab" data-tab="choferes">Choferes</button>
+    <button class="tab" data-tab="fincas">Fincas & Lotes</button>
+    <button class="tab" data-tab="seguridad">Seguridad</button>
+    <button class="tab" data-tab="sincronizar">Sincronizar</button>
+  </div>
+
+  <!-- Registrar viaje -->
+  <section id="viaje" class="card">
+    <div class="grid2 row">
+      <div><label>Fecha</label><input type="date" id="v_fecha"></div>
+      <div><label>Camión</label><input type="text" id="v_camion" placeholder="Camión 01…"></div>
+    </div>
+    <div class="grid2 row">
+      <div><label>Placa</label><input type="text" id="v_placa" placeholder="ABC-123"></div>
+      <div><label>Chofer</label>
+        <select id="v_chofer"></select>
+      </div>
+    </div>
+    <div class="grid2 row">
+      <div><label>Origen</label><input type="text" id="v_origen"></div>
+      <div><label>Destino</label><input type="text" id="v_destino"></div>
+    </div>
+    <div class="grid3 row">
+      <div>
+        <label>Finca</label>
+        <select id="v_finca"></select>
+      </div>
+      <div>
+        <label>Lote</label>
+        <select id="v_lote"></select>
+      </div>
+      <div class="muted" style="display:flex;align-items:end;gap:8px">
+        <span>Lista editable en pestaña “Fincas & Lotes”.</span>
+      </div>
+    </div>
+    <div class="grid2 row">
+      <div><label>Hora salida</label><input type="time" id="v_salida"></div>
+      <div><label>Hora llegada</label><input type="time" id="v_llegada"></div>
+    </div>
+    <div class="row"><label>Observaciones</label><textarea id="v_obs" placeholder="Notas del viaje"></textarea></div>
+    <div class="actions">
+      <button class="primary" id="btnEnviar">Enviar a Excel</button>
+      <button class="btn" id="btnLimpiar">Limpiar</button>
+      <span id="estadoEnvio" class="muted"></span>
+    </div>
+  </section>
+
+  <!-- Choferes -->
+  <section id="choferes" class="card" hidden>
+    <div class="row grid2">
+      <div><label>Nuevo chofer</label><input type="text" id="c_nuevo" placeholder="Nombre del chofer"></div>
+      <div style="display:flex;align-items:end"><button class="primary" id="c_add">Agregar</button></div>
+    </div>
+    <div id="c_lista"></div>
+  </section>
+
+  <!-- Fincas & Lotes -->
+  <section id="fincas" class="card" hidden>
+    <div class="row grid2">
+      <div><label>Nueva finca</label><input type="text" id="f_nueva" placeholder="Ej. Buena Vista"></div>
+      <div style="display:flex;align-items:end"><button class="primary" id="f_add">Agregar finca</button></div>
+    </div>
+    <div id="f_lista" class="row"></div>
+    <div class="sep"></div>
+    <div class="row grid3">
+      <div><label>Lote (texto)</label><input type="text" id="l_nuevo" placeholder="Ej. Lote 007"></div>
+      <div><label>Asignar a finca</label><select id="l_fincaSel"></select></div>
+      <div style="display:flex;align-items:end"><button class="primary" id="l_add">Agregar lote</button></div>
+    </div>
+    <div id="l_lista"></div>
+  </section>
+
+  <!-- Seguridad -->
+  <section id="seguridad" class="card" hidden>
+    <p class="muted">Protegé la app con un <b>PIN</b>. Por defecto es <code>1234</code>.</p>
+    <div class="grid2 row">
+      <div><label>PIN actual</label><input type="password" id="pin_actual" inputmode="numeric" maxlength="8"></div>
+      <div><label>Nuevo PIN</label><input type="password" id="pin_nuevo" inputmode="numeric" maxlength="8"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnCambiarPin">Cambiar PIN</button>
+      <button class="btn" id="btnBloquear">Bloquear ahora</button>
+      <span id="estadoPin" class="muted"></span>
+    </div>
+  </section>
+
+  <!-- Sincronizar -->
+  <section id="sincronizar" class="card" hidden>
+    <div class="actions">
+      <button class="primary" id="btnSync">🔄 Sincronizar (leer hoja)</button>
+      <button class="btn" id="btnEnviarPendientes">Enviar pendientes</button>
+      <span id="estadoSync" class="muted"></span>
+    </div>
+    <div id="tabla"></div>
+  </section>
+</div>
+
+<!-- Overlay de bloqueo -->
+<div class="lock" id="lock" hidden>
+  <div class="box">
+    <h3>🔒 Seguridad BYC</h3>
+    <p class="muted">Ingresá tu PIN para desbloquear (default <b>1234</b>).</p>
+    <div class="row"><input type="password" id="pin_login" placeholder="PIN" inputmode="numeric" maxlength="8"></div>
+    <div class="actions">
+      <button class="primary" id="btnLogin">Desbloquear</button>
+    </div>
+    <p id="estadoLogin" class="error"></p>
+  </div>
+</div>
+
+<script>
+/* ================== CONFIG ================== */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyjDY7j7ehoQ7crRAh2tLT_PnRvVT384_YmUmJ5JOmwP8jBH23x45CksGy3plcsM5nLcg/exec";
+/* Encabezados recomendados en la hoja:
+   FECHA | CAMION | PLACA | CHOFER | ORIGEN | DESTINO | SALIDA | LLEGADA | FINCA | LOTE | OBSERVACIONES
+   (Si usás ODS, igual lo toma como observaciones) */
+
+/* ================== UTIL ================== */
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const store = {
+  get:(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch{return def}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+function toast(el,msg,ok=true){ el.textContent = msg; el.className = ok ? 'ok' : 'error'; setTimeout(()=>{el.textContent=''; el.className='muted'},3500); }
+
+/* ================== SEGURIDAD ================== */
+const PIN_KEY = "byc_pin";
+function getPin(){ return store.get(PIN_KEY,"1234"); }
+function setPin(p){ store.set(PIN_KEY,String(p||"1234")); }
+function lock(){ $("#lock").hidden=false; }
+function unlock(){ $("#lock").hidden=true; }
+$("#btnLogin").onclick = () => {
+  const ok = $("#pin_login").value === getPin();
+  if(ok){ unlock(); $("#pin_login").value=""; $("#estadoLogin").textContent=""; }
+  else { $("#estadoLogin").textContent="PIN incorrecto"; }
+};
+$("#btnBloquear").onclick = () => lock();
+$("#btnCambiarPin").onclick = () => {
+  const act = $("#pin_actual").value, neu = $("#pin_nuevo").value;
+  if(act !== getPin()) return toast($("#estadoPin"),"PIN actual incorrecto",false);
+  if(!neu || neu.length<4) return toast($("#estadoPin"),"El nuevo PIN debe tener al menos 4 dígitos",false);
+  setPin(neu);
+  $("#pin_actual").value=""; $("#pin_nuevo").value="";
+  toast($("#estadoPin"),"PIN actualizado ✅",true);
+};
+window.addEventListener('load', ()=> lock()); // bloquear al abrir
+
+/* ================== DATOS LOCALES ================== */
+let choferes = store.get("byc_choferes", ["Freddy","Tatiana","Javier"]);
+let fincas   = store.get("byc_fincas", ["Buena Vista","Guayabito","Caño Blanco","Don Cuyo"]);
+let lotes    = store.get("byc_lotes",  [{"finca":"Buena Vista","lote":"Lote 001"},{"finca":"Buena Vista","lote":"Lote 007"},{"finca":"Guayabito","lote":"Lote 021"}]);
+let pendientes = store.get("byc_pendientes", []);
+
+/* ================== UI: TABS ================== */
+$$(".tab").forEach(b=>{
+  b.onclick = () => {
+    $$(".tab").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    ["viaje","choferes","fincas","seguridad","sincronizar"].forEach(id => $("#"+id).hidden = (id!==b.dataset.tab));
+  };
+});
+
+/* ================== RENDER LISTAS ================== */
+function renderChoferes(){
+  const sel = $("#v_chofer");
+  sel.innerHTML = choferes.map(n=>`<option value="${n}">${n}</option>`).join("");
+  const list = choferes.map((n,i)=>`<div class="row grid2"><input value="${n}" disabled><button class="danger" onclick="delChofer(${i})">Eliminar</button></div>`).join("");
+  $("#c_lista").innerHTML = list || '<p class="muted">No hay choferes.</p>';
+}
+function delChofer(i){ choferes.splice(i,1); store.set("byc_choferes",choferes); renderChoferes(); }
+
+function renderFincasLotes(){
+  // selects del formulario
+  const sf = $("#v_finca");
+  sf.innerHTML = fincas.map(f=>`<option value="${f}">${f}</option>`).join("");
+  const sl = $("#v_lote");
+  const fincaSel = sf.value || fincas[0] || "";
+  const lotesFinca = lotes.filter(x=>x.finca===fincaSel);
+  sl.innerHTML = lotesFinca.map(x=>`<option value="${x.lote}">${x.lote}</option>`).join("");
+
+  // listas de administración
+  $("#f_lista").innerHTML = fincas.map((f,i)=>`
+    <div class="row grid2">
+      <input value="${f}" disabled>
+      <button class="danger" onclick="delFinca(${i})">Eliminar</button>
+    </div>
+  `).join("") || '<p class="muted">No hay fincas.</p>';
+
+  $("#l_fincaSel").innerHTML = fincas.map(f=>`<option value="${f}">${f}</option>`).join("");
+
+  let html = "";
+  fincas.forEach(f=>{
+    html += `<h4 style="margin:10px 0 6px">${f}</h4>`;
+    const arr = lotes.filter(x=>x.finca===f);
+    if(!arr.length){ html += `<p class="muted">Sin lotes</p>`; return; }
+    html += `<div class="grid3">` + arr.map((x,idx)=>{
+      const i = lotes.indexOf(x);
+      return `<div class="row"><input value="${x.lote}" disabled><button class="danger" onclick="delLote(${i})">Eliminar</button></div>`;
+    }).join("") + `</div>`;
+  });
+  $("#l_lista").innerHTML = html;
+}
+function delFinca(i){
+  const nombre = fincas[i];
+  fincas.splice(i,1);
+  lotes = lotes.filter(x=>x.finca!==nombre);
+  store.set("byc_fincas",fincas); store.set("byc_lotes",lotes);
+  renderFincasLotes();
+}
+function delLote(i){ lotes.splice(i,1); store.set("byc_lotes",lotes); renderFincasLotes(); }
+
+/* eventos agregar */
+$("#c_add").onclick = ()=> {
+  const v = $("#c_nuevo").value.trim();
+  if(!v) return;
+  if(!choferes.includes(v)) choferes.push(v);
+  store.set("byc_choferes",choferes);
+  $("#c_nuevo").value=""; renderChoferes();
+};
+$("#f_add").onclick = ()=> {
+  const v = $("#f_nueva").value.trim();
+  if(!v) return;
+  if(!fincas.includes(v)) fincas.push(v);
+  store.set("byc_fincas",fincas);
+  $("#f_nueva").value=""; renderFincasLotes();
+};
+$("#l_add").onclick = ()=> {
+  const lote = $("#l_nuevo").value.trim();
+  const finca = $("#l_fincaSel").value;
+  if(!lote || !finca) return;
+  lotes.push({finca, lote});
+  store.set("byc_lotes",lotes);
+  $("#l_nuevo").value=""; renderFincasLotes();
+};
+
+/* cambiar lotes según finca seleccionada en formulario */
+$("#v_finca").addEventListener("change", renderFincasLotes);
+
+/* inicializar selects */
+renderChoferes(); renderFincasLotes();
+
+/* ================== VIAJE: enviar/sincronizar ================== */
+function leerViaje(){
+  return {
+    fecha: $("#v_fecha").value,
+    camion: $("#v_camion").value,
+    placa: $("#v_placa").value,
+    chofer: $("#v_chofer").value,
+    origen: $("#v_origen").value,
+    destino: $("#v_destino").value,
+    finca: $("#v_finca").value,
+    lote: $("#v_lote").value,
+    salida: $("#v_salida").value,
+    llegada: $("#v_llegada").value,
+    observaciones: $("#v_obs").value
+  };
+}
+$("#btnLimpiar").onclick = ()=> { $$("#viaje input, #viaje textarea").forEach(e=>e.value=""); }
+
+async function enviarRegistro(reg, showMsg=true){
+  const estado = $("#estadoEnvio");
+  try{
+    const body = new URLSearchParams({ payload: JSON.stringify([reg]) });
+    const res  = await fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
+    const txt  = await res.text();
+    let j; try{ j=JSON.parse(txt);}catch{ j={ok:res.ok, raw:txt}; }
+    if(!j.ok) throw new Error(j.error || JSON.stringify(j));
+    if(showMsg) toast(estado,`Enviado ✅`);
+    return true;
+  }catch(err){
+    if(showMsg) toast(estado,`Sin internet o error. Guardado en pendientes.`,false);
+    // guardar en cola:
+    pendientes.push(reg); store.set("byc_pendientes",pendientes);
+    return false;
+  }
+}
+$("#btnEnviar").onclick = async ()=>{
+  const reg = leerViaje();
+  await enviarRegistro(reg,true);
+  $("#btnLimpiar").click();
+};
+
+$("#btnEnviarPendientes").onclick = async ()=>{
+  const est = $("#estadoSync");
+  if(!pendientes.length){ return toast(est,"No hay pendientes"); }
+  let ok=0, fail=0, nuevos=[];
+  for(const r of pendientes){
+    const exito = await enviarRegistro(r,false);
+    if(exito) ok++; else {fail++; nuevos.push(r);}
+  }
+  pendientes = nuevos; store.set("byc_pendientes",pendientes);
+  toast(est,`Pendientes enviados: OK ${ok} / Error ${fail}`, fail===0);
+};
+
+$("#btnSync").onclick = async ()=>{
+  const est = $("#estadoSync"); const tabla = $("#tabla");
+  est.textContent="Leyendo hoja…";
+  try{
+    const res = await fetch(GAS_URL+"?action=getData");
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||"Error al sincronizar");
+    est.textContent=`Registros: ${j.data.length}`;
+    const headers = (j.headers && j.headers.length) ? j.headers : Object.keys(j.data[0]||{});
+    let html = "<table><thead><tr>";
+    headers.forEach(h=>html+=`<th>${h}</th>`); html+="</tr></thead><tbody>";
+    j.data.forEach(r=>{ html+="<tr>"; headers.forEach(h=>html+=`<td>${r[h]??""}</td>`); html+="</tr>"; });
+    html += "</tbody></table>";
+    tabla.innerHTML = html;
+  }catch(err){
+    toast(est,String(err),false);
+  }
+};
+
+/* ================== FIN ================== */
+</script>
+</body>
+</html>

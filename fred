@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Camiones</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+    }
+    p {
+      text-align: center;
+      font-size: 18px;
+    }
+    .card {
+      background: white;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚛 Control de Camiones</h1>
+  <div class="card">
+    <p>Bienvenido al sistema de prueba en GitHub Pages.</p>
+    <p>Aquí podrás cargar tu aplicación real más adelante.</p>
+    <button onclick="alert('Aquí iría tu app!')">Probar botón</button>
+  </div>
+</body>
+</html>
