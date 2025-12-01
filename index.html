@@ -10,18 +10,26 @@
       --accent:#5ea1ff;--danger:#ff5e7a;--border:#232838
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);
-      font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif
+    }
     .wrap{max-width:900px;margin:0 auto;padding:20px}
     h1{font-size:1.9rem;margin:0 0 6px}
     .lead{color:var(--muted);margin:0 0 16px}
-    .card{background:var(--panel);border:1px solid var(--border);
-      border-radius:14px;padding:16px}
+    .card{
+      background:var(--panel);border:1px solid var(--border);
+      border-radius:14px;padding:16px
+    }
     .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
-    .tab{padding:10px 14px;border:1px solid var(--border);border-radius:10px;
-      background:#111524;color:var(--muted);cursor:pointer}
-    .tab.active{background:var(--accent);color:#07111f;border-color:transparent;
-      font-weight:700}
+    .tab{
+      padding:10px 14px;border:1px solid var(--border);border-radius:10px;
+      background:#111524;color:var(--muted);cursor:pointer
+    }
+    .tab.active{
+      background:var(--accent);color:#07111f;border-color:transparent;
+      font-weight:700
+    }
     label{font-size:.9rem;color:var(--muted)}
     input,select,textarea{
       width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);
@@ -31,8 +39,10 @@
     .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .row{margin-bottom:12px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    button{padding:10px 14px;border:0;border-radius:12px;cursor:pointer;
-      font-weight:700}
+    button{
+      padding:10px 14px;border:0;border-radius:12px;cursor:pointer;
+      font-weight:700
+    }
     .btn{background:#1b2233;color:var(--text);border:1px solid var(--border)}
     .primary{background:var(--accent);color:#051226}
     .danger{background:var(--danger);color:#22070c}
@@ -43,11 +53,15 @@
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border:1px solid var(--border);padding:6px 8px;font-size:.9rem}
     th{background:#101525;color:var(--muted);text-align:left}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;
+    .badge{
+      display:inline-block;padding:2px 8px;border-radius:999px;
       font-size:.8rem;border:1px solid var(--border);background:#101525;
-      color:var(--muted)}
-    .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-      justify-content:space-between;margin-bottom:12px}
+      color:var(--muted)
+    }
+    .topbar{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      justify-content:space-between;margin-bottom:12px
+    }
     @media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}}
   </style>
 </head>
@@ -90,12 +104,20 @@
     <div class="grid2 row">
       <div>
         <label>Actividad</label>
-        <input type="text" id="r_actividad" placeholder="Ej. Chapea, siembra, cosecha…">
+        <select id="r_actividad"></select>
       </div>
+      <div>
+        <label>Si es “OTRO”, especifique</label>
+        <input type="text" id="r_actividad_otro" placeholder="Detalle actividad" disabled>
+      </div>
+    </div>
+
+    <div class="grid2 row">
       <div>
         <label>Cantidad de personal</label>
         <input type="number" id="r_cantidad" min="0" inputmode="numeric">
       </div>
+      <div></div>
     </div>
 
     <div class="grid2 row">
@@ -187,7 +209,7 @@
 </div>
 
 <script>
-const APP_VERSION = "2025.11.30-1";
+const APP_VERSION = "2025.11.30-2";
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyRyk4YvdnP8aI8tn0F-TdhNTihQxzILbRvT_wV9-K0-5QolLwbdbM1SmlUPvcoIQVl/exec";
 const ADMIN_PASS_NORMALIZED = "admi12345";
 
@@ -283,16 +305,42 @@ const DEFAULTS = {
 };
 
 const ENCARGADOS = [
-  "Braulio","Victor","Juan Perez","Roberto","Jorge","Efrain",
-  "Geovani Jimenez","Leandro Bustos","Vinicio Vonilla","Fabian Esquivel",
-  "Adrian Cruz","Kevin Alvares","Ariel Rubi","Kennet Oporta",
-  "Planta La Bruja","Planta Bajo Cero","Javier Cerdas"
+  "Braulio",
+  "Victor",
+  "Juan Perez",
+  "Roberto",
+  "Jorge",
+  "Efrain",
+  "Geovani Jimenez",
+  "Fabian Esquivel",
+  "Adrian Cruz",
+  "Kevin Alvares",
+  "Ariel Rubi",
+  "Kennet Oporta",
+  "Planta La Bruja",
+  "Planta Bajo Cero",
+  "Javier Cerdas"
 ];
 
 const TERCEROS = [
   "Soluciones Agricolas",
   "Bolivar Rodrigues",
-  "Derex Arrieta"
+  "Derex Arrieta",
+  "Arranca yuca"
+];
+
+const ACTIVIDADES = [
+  "SIEMBRA",
+  "PICA DE SEMILLA",
+  "JUNTA DE SEMILLA",
+  "DESPUNTA",
+  "SELECCION DE SEMILLA",
+  "ABONO",
+  "CHAPIAS",
+  "DESHIJAS",
+  "DESHOJAS",
+  "COSECHA",
+  "OTRO"
 ];
 
 function dedupLotes(raw){
@@ -458,7 +506,7 @@ $("#l_add")?.addEventListener("click",()=>{
   initFincaLote();
 });
 
-/*** ENCARGADOS & TERCEROS ***/
+/*** ENCARGADOS & TERCEROS & ACTIVIDADES ***/
 function renderEncargados(){
   const sel = $("#r_encargado");
   if(!sel) return;
@@ -469,14 +517,33 @@ function renderTerceros(){
   if(!sel) return;
   sel.innerHTML = TERCEROS.map(n=>`<option value="${n}">${n}</option>`).join("");
 }
+function renderActividades(){
+  const sel = $("#r_actividad");
+  if(!sel) return;
+  sel.innerHTML = ACTIVIDADES.map(a=>`<option value="${a}">${a}</option>`).join("");
+}
+function updateActividadOtro(){
+  const sel = $("#r_actividad");
+  const inp = $("#r_actividad_otro");
+  if(!sel || !inp) return;
+  const esOtro = sel.value === "OTRO";
+  inp.disabled = !esOtro;
+  if(!esOtro) inp.value = "";
+}
+$("#r_actividad")?.addEventListener("change", updateActividadOtro);
 
 /*** FORMULARIO PRINCIPAL ***/
 function leerRegistro(){
+  const actSel = $("#r_actividad")?.value || "";
+  const actOtro = $("#r_actividad_otro")?.value || "";
+  const actividad = (actSel === "OTRO") ? (actOtro || "OTRO") : actSel;
+
   return{
     fecha: $("#r_fecha")?.value || todayISO(),
     finca: $("#r_finca")?.value || "",
     lote: $("#r_lote")?.value || "",
-    actividad: $("#r_actividad")?.value || "",
+    actividad,
+    actividad_base: actSel,
     cantidadPersonal: Number($("#r_cantidad")?.value || 0),
     tercero: $("#r_tercero")?.value || "",
     encargadoConteo: $("#r_encargado")?.value || "",
@@ -485,10 +552,12 @@ function leerRegistro(){
 }
 
 $("#btnLimpiar")?.addEventListener("click",()=>{
-  $("#r_actividad").value="";
-  $("#r_cantidad").value="";
   const f = $("#r_fecha");
   if(f) f.value=todayISO();
+  $("#r_cantidad").value="";
+  $("#r_actividad").value = ACTIVIDADES[0];
+  $("#r_actividad_otro").value="";
+  updateActividadOtro();
   initFincaLote();
   renderTerceros();
   renderEncargados();
@@ -531,7 +600,16 @@ window.editarBor = i=>{
   $("#r_fecha").value = r.fecha || todayISO();
   $("#r_finca").value = r.finca || $("#r_finca").value;
   updateLotes("#r_finca","#r_lote",r.lote);
-  $("#r_actividad").value = r.actividad || "";
+
+  const base = r.actividad_base || r.actividad || "SIEMBRA";
+  $("#r_actividad").value = ACTIVIDADES.includes(base) ? base : "OTRO";
+  updateActividadOtro();
+  if($("#r_actividad").value === "OTRO"){
+    $("#r_actividad_otro").value = r.actividad || "";
+  }else{
+    $("#r_actividad_otro").value = "";
+  }
+
   $("#r_cantidad").value = r.cantidadPersonal ?? r.cantidad ?? "";
   $("#r_tercero").value = r.tercero || $("#r_tercero").value;
   $("#r_encargado").value = r.encargadoConteo || r.encargado || $("#r_encargado").value;
@@ -674,6 +752,8 @@ document.getElementById("appVersion").textContent="v"+APP_VERSION;
 const f0=$("#r_fecha"); if(f0 && !f0.value) f0.value=todayISO();
 renderEncargados();
 renderTerceros();
+renderActividades();
+updateActividadOtro();
 initFincaLote();
 updateAdminUI();
 renderBorradores();
